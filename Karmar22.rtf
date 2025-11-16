@@ -1,0 +1,218 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2709
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\froman\fcharset0 Times-Bold;}
+{\colortbl;\red255\green255\blue255;\red0\green0\blue0;}
+{\*\expandedcolortbl;;\cssrgb\c0\c0\c0;}
+\margl1440\margr1440\vieww13100\viewh6640\viewkind0
+\deftab720
+\pard\pardeftab720\partightenfactor0
+
+\f0\b\fs24 \cf0 \expnd0\expndtw0\kerning0
+\outl0\strokewidth0 \strokec2 <!DOCTYPE html>\
+<html>\
+<head>\
+  <title>Cabrillo Flyer</title>\
+  <style>\
+    body \{\
+      margin: 0;\
+      overflow: hidden;\
+      background: #87CEFA;\
+      font-family: "Comic Sans MS", Arial, sans-serif;\
+    \}\
+\
+    #title \{\
+      position: absolute;\
+      top: 10px;\
+      width: 100%;\
+      text-align: center;\
+      color: white;\
+      font-size: 36px;\
+      font-weight: bold;\
+      text-shadow: 3px 3px 4px black;\
+      z-index: 10;\
+    \}\
+\
+    #score \{\
+      position: absolute;\
+      top: 60px;\
+      width: 100%;\
+      text-align: center;\
+      color: yellow;\
+      font-size: 28px;\
+      font-weight: bold;\
+      text-shadow: 2px 2px 3px black;\
+      z-index: 10;\
+    \}\
+\
+    canvas \{\
+      display: block;\
+      margin: 0 auto;\
+      background: linear-gradient(#87CEFA, #B0E0E6);\
+    \}\
+  </style>\
+</head>\
+<body>\
+\
+<div id="title">Cabrillo College</div>\
+<div id="score">Score: 0</div>\
+\
+<canvas id="gameCanvas" width="420" height="600"></canvas>\
+\
+<script>\
+const canvas = document.getElementById("gameCanvas");\
+const ctx = canvas.getContext("2d");\
+\
+let bird = \{\
+  x: 80,\
+  y: 250,\
+  width: 40,\
+  height: 40,\
+  velocity: 0,\
+\};\
+\
+let gravity = 0.4;\
+let jumpStrength = -7;\
+let pipes = [];\
+let frame = 0;\
+let score = 0;\
+let gameOver = false;\
+\
+function resetGame() \{\
+  bird.y = 250;\
+  bird.velocity = 0;\
+  pipes = [];\
+  score = 0;\
+  frame = 0;\
+  gameOver = false;\
+\}\
+\
+function drawBird() \{\
+  ctx.fillStyle = "orange";\
+  ctx.beginPath();\
+  ctx.arc(bird.x + 20, bird.y + 20, 20, 0, Math.PI * 2);\
+  ctx.fill();\
+\
+  // Cartoon eye\
+  ctx.fillStyle = "white";\
+  ctx.beginPath();\
+  ctx.arc(bird.x + 28, bird.y + 14, 8, 0, Math.PI * 2);\
+  ctx.fill();\
+\
+  ctx.fillStyle = "black";\
+  ctx.beginPath();\
+  ctx.arc(bird.x + 30, bird.y + 14, 4, 0, Math.PI * 2);\
+  ctx.fill();\
+\}\
+\
+function createPipes() \{\
+  if (frame % 90 === 0) \{\
+    let topHeight = Math.random() * 220 + 40;\
+    let gap = 150;\
+\
+    pipes.push(\{\
+      x: canvas.width,\
+      width: 70,\
+      top: topHeight,\
+      bottom: canvas.height - (topHeight + gap),\
+      passed: false\
+    \});\
+  \}\
+\}\
+\
+function updatePipes() \{\
+  pipes.forEach(pipe => pipe.x -= 3);\
+  pipes = pipes.filter(pipe => pipe.x + pipe.width > 0);\
+\}\
+\
+function drawPipes() \{\
+  pipes.forEach(pipe => \{\
+    ctx.fillStyle = "#32CD32";\
+    ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);\
+    ctx.fillRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);\
+\
+    // Cartoon pipe outlines\
+    ctx.strokeStyle = "#006400";\
+    ctx.lineWidth = 3;\
+    ctx.strokeRect(pipe.x, 0, pipe.width, pipe.top);\
+    ctx.strokeRect(pipe.x, canvas.height - pipe.bottom, pipe.width, pipe.bottom);\
+  \});\
+\}\
+\
+function detectCollision() \{\
+  if (bird.y + bird.height > canvas.height || bird.y < 0) return true;\
+\
+  for (let p of pipes) \{\
+    if (\
+      bird.x < p.x + p.width &&\
+      bird.x + bird.width > p.x &&\
+      (bird.y < p.top || bird.y + bird.height > canvas.height - p.bottom)\
+    ) \{\
+      return true;\
+    \}\
+  \}\
+  return false;\
+\}\
+\
+function updateGame() \{\
+  if (gameOver) return;\
+\
+  bird.velocity += gravity;\
+  bird.y += bird.velocity;\
+\
+  createPipes();\
+  updatePipes();\
+\
+  // Score system\
+  pipes.forEach(pipe => \{\
+    if (!pipe.passed && pipe.x + pipe.width < bird.x) \{\
+      score++;\
+      pipe.passed = true;\
+      document.getElementById("score").innerText = `Score: $\{score\}`;\
+    \}\
+  \});\
+\
+  if (detectCollision()) \{\
+    gameOver = true;\
+    setTimeout(resetGame, 1500);\
+  \}\
+\}\
+\
+function drawBackground() \{\
+  // Simple cartoon clouds\
+  ctx.fillStyle = "white";\
+  ctx.beginPath();\
+  ctx.arc(80, 90, 25, 0, Math.PI * 2);\
+  ctx.arc(110, 90, 35, 0, Math.PI * 2);\
+  ctx.arc(150, 90, 25, 0, Math.PI * 2);\
+  ctx.fill();\
+\
+  ctx.beginPath();\
+  ctx.arc(300, 140, 20, 0, Math.PI * 2);\
+  ctx.arc(330, 140, 30, 0, Math.PI * 2);\
+  ctx.arc(365, 140, 20, 0, Math.PI * 2);\
+  ctx.fill();\
+\}\
+\
+function drawGame() \{\
+  ctx.clearRect(0, 0, canvas.width, canvas.height);\
+\
+  drawBackground();\
+  drawBird();\
+  drawPipes();\
+\}\
+\
+function gameLoop() \{\
+  updateGame();\
+  drawGame();\
+  frame++;\
+  requestAnimationFrame(gameLoop);\
+\}\
+\
+document.addEventListener("keydown", () => (bird.velocity = jumpStrength));\
+canvas.addEventListener("mousedown", () => (bird.velocity = jumpStrength));\
+canvas.addEventListener("touchstart", () => (bird.velocity = jumpStrength));\
+\
+gameLoop();\
+</script>\
+</body>\
+</html>\
+ }
